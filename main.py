@@ -1,12 +1,12 @@
 from typing import List, Optional, Union
 
 import customtkinter
+import tkinter as tk
+from PIL import Image, ImageTk  
 
 from src.llm_dnd_dm.chatbot import DungeonMaster
 
-customtkinter.set_appearance_mode("System")
-customtkinter.set_default_color_theme("blue")
-
+customtkinter.set_appearance_mode("System") 
 
 class StartNewSessionWindow(customtkinter.CTkToplevel):
     def __init__(self, sessions: List[str]) -> None:
@@ -84,7 +84,7 @@ class ContinueSessionWindow(customtkinter.CTkToplevel):
 
         self._user_input: Union[str, None] = None
         self._running: bool = False
-        self._title = "Continue session"
+        self._title = "Continue last session"
         self._text = "Choose a session"
 
         self.title(self._title)
@@ -153,8 +153,20 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("LLM DnD DM")
-        self.geometry(f"{800}x{580}")
+        self.geometry(f"{1000}x{800}")
+        self.configure(bg="#f0eade")  # 淡金色背景
+        self.attributes('-alpha', 0.97)
+        self.canvas = tk.Canvas(self, highlightthickness=0)
+        self.canvas.place(relwidth=1, relheight=1)  # Canvas填满整个窗口
 
+        try:
+            pil_image = Image.open("dnd_background.jpg")
+            self.background_image = ImageTk.PhotoImage(pil_image)
+            self.canvas_background = self.canvas.create_image(0, 0, image=self.background_image, anchor="nw")
+        except Exception as e:
+            #print("Error loading image:", e)
+            pass
+        self.bind("<Configure>", self.resize_background)
         self.grid_columnconfigure(0, weight=10)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure((0, 1, 2), weight=5)
@@ -167,19 +179,26 @@ class App(customtkinter.CTk):
 
         self.start_new_session_window = None
         self.continue_session_window = None
-
         self.create_widgets()
 
+    def resize_background(self, event):
+        # 调整图片大小以适应窗口
+        size = (event.width, event.height)
+        resized = Image.open("dnd_background.jpg").resize(size, Image.Resampling.LANCZOS) 
+        self.background_image = ImageTk.PhotoImage(resized)
+        self.canvas.itemconfig(self.canvas_background, image=self.background_image)
+    
     def create_widgets(self) -> None:
 
-        self.chat_history = customtkinter.CTkTextbox(self)
-        self.chat_history.configure(state="disabled")
-        self.chat_history.grid(
-            row=0, rowspan=3, padx=(20, 20), pady=(20, 0), sticky="nsew"
-        )
+        self.chat_history = customtkinter.CTkTextbox(self, fg_color="#C0C0C0",text_color="#000000")
+        self.chat_history.configure(state="normal")  # 初始设置为normal以便插入文本
+        self.chat_history.place(relwidth=1, relheight=1)  # 使文本框填满标签
+        
+        self.chat_history.grid(row=0, rowspan=3, padx=(20, 20), pady=(20, 0), sticky="nsew")
+        self.chat_history.configure(state="disabled")  # 插入文本后再设置为disabled
 
         self.user_input_entry = customtkinter.CTkEntry(
-            self, placeholder_text="What do you do?"
+            self, placeholder_text="type 1,2,3 or whatever other actions you want to take"
         )
         self.user_input_entry.grid(
             row=3, column=0, padx=(20, 20), pady=(20, 20), sticky="nsew"
@@ -187,18 +206,18 @@ class App(customtkinter.CTk):
         self.user_input_entry.bind("<Return>", self.user_input_button_action)
 
         self.user_input_button = customtkinter.CTkButton(
-            self, text="Send", command=self.user_input_button_action
+            self, text="Send", command=self.user_input_button_action,**button_style
         )
         self.user_input_button.grid(
             row=3, column=1, padx=(20, 20), pady=(20, 20), sticky="nsew"
         )
 
         self.start_new_session_button = customtkinter.CTkButton(
-            self, text="Start new session", command=self.start_new_session
+            self, text="Start new session", command=self.start_new_session,**button_style
         )
         self.start_new_session_button.grid(row=0, column=1, padx=10, pady=(10, 10))
         self.continue_session_button = customtkinter.CTkButton(
-            self, text="Continue session", command=self.continue_specific_session
+            self, text="Continue last session", command=self.continue_specific_session,**button_style
         )
         self.continue_session_button.grid(row=1, column=1, padx=10, pady=(10, 10))
 
@@ -277,9 +296,17 @@ class App(customtkinter.CTk):
             self.chat_history.configure(state="disabled")
 
 
-general_system_message = "The AI assistant is a world-renowned dungeon master of the fantasy tabletop role-playing game 'Dungeons & Dragons'. The AI assistant always stays in character as the dungeon master. The AI assistant listens to what actions the user takes and guides the story the game. The AI assistant keeps the answers to a couple of sentences."
-
+#general_system_message = "The AI assistant is a world-renowned dungeon master of the fantasy tabletop role-playing game 'Dungeons & Dragons'. The AI assistant always stays in character as the dungeon master. The AI assistant listens to what actions the user takes and guides the story the game. The AI assistant keeps the answers to a couple of sentences."
+general_system_message = "The AI assistant is a world-renowned dungeon master of the fantasy tabletop role-playing game 'Dungeons & Dragons'. The AI assistant always stays in character as the dungeon master. The AI assistant listens to what actions the user takes and guides the story the game. The AI assistant keeps the answers to a couple of sentences and generate three options for the user to take next:\n 1. [Describe action 1]\n 2.[Describe action 2]\n 3. [Describe action 3] "
+button_style = {
+            "border_width": 1,
+            "fg_color": "#a39480",  # 暗金色
+            "hover_color": "#d4c4a1",  # 浅金色
+            "text_color": "#FFFFFF",
+            "corner_radius": 15
+        }
 
 if __name__ == "__main__":
+
     app = App()
     app.mainloop()

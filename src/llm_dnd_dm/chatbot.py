@@ -70,7 +70,6 @@ class DungeonMaster:
         if not current_summary:
             chat_prompt = last_messages + [user_message_formatted]
             return chat_prompt
-
         else:
             related_information = self.vector_store_memory.retreive_related_information(
                 user_message=user_message
@@ -81,10 +80,10 @@ class DungeonMaster:
                 context_sentences=related_information,
             )
             system_prompt_formatted = self.assign_role_to_message(
-                "system", system_prompt
+                "system", system_prompt+ "\n"
             )
             chat_prompt = (
-                [system_prompt_formatted] + last_messages + [user_message_formatted]
+                [system_prompt_formatted]+ last_messages + [user_message_formatted]
             )
             return chat_prompt
 

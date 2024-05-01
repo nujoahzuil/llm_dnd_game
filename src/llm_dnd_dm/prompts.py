@@ -11,17 +11,17 @@ New lines of conversation:
 Updated summary:"""
 
 
-_CHAT_TEMPLATE = """Continue the conversation between you and the user by using the following AI assistant role description, the provided summary of the conversation so far and the supplemental related sentences as context:
+_CHAT_TEMPLATE = """Continue the conversation between you and the user and provide possible actions for the user to take next by using the following AI assistant role description, the provided summary of the conversation so far and the supplemental related sentences as context:
 
 AI assistant role description:
 {system_message}
-
 
 Conversation summary:
 {current_summary}
 
 Context sentence:
-{related_information}
+{related_information};
+
 """
 
 
@@ -64,16 +64,3 @@ def prepare_system_chat_prompt(
         current_summary=current_summary,
         related_information=context_sentences_formatted,
     )
-
-
-# def create_GPT4_correct_prompt(system_prompt: str, messages: list) -> str:
-
-#     separator = "<|end_of_turn|>"
-#     result_prompt = ""
-#     for message in messages:
-#         result_prompt += message + separator
-
-#     result_prompt = system_prompt + result_prompt + "GPT4 Correct Assistant:"
-#     # tokens = tokenizer("GPT4 Correct User: Hello<|end_of_turn|>GPT4 Correct Assistant: Hi<|end_of_turn|>GPT4 Correct User: How are you today?<|end_of_turn|>GPT4 Correct Assistant:").input_ids
-
-#     return ""
